@@ -1,0 +1,15 @@
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Keystore (혹시 나중에 생기면)
+*.jks
+*.keystore
+keystore.properties
