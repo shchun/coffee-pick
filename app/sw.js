@@ -1,7 +1,7 @@
 // sw.js — basic offline cache for 커피한잔 고?
 // Cache-first for our own assets, network-first for everything else.
 
-const CACHE = 'coffee-pick-v1';
+const CACHE = 'coffee-pick-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -39,6 +39,11 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // Analytics: always hit the network, never cache (fails silently when offline).
+  const host = new URL(req.url).hostname;
+  if (/(^|\.)(google-analytics\.com|googletagmanager\.com|analytics\.google\.com)$/.test(host)) {
+    return;
+  }
   e.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;

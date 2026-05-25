@@ -9,6 +9,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code (로컬 설정)
+.claude/settings.local.json
+
 # Keystore (혹시 나중에 생기면)
 *.jks
 *.keystore

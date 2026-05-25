@@ -597,6 +597,7 @@ function TouchSelector({ variant = 'neon' }) {
     if (ids.length >= 2) {
       setPhase('counting');
       setProgress(0);
+      if (window.track) window.track('game_start', { players: ids.length, variant });
       const start = performance.now();
       let lastTick = -1;
       let raf;
@@ -620,6 +621,7 @@ function TouchSelector({ variant = 'neon' }) {
             ignoreRef.current = true;
             setWinnerId(Number(w));
             setPhase('winner');
+            if (window.track) window.track('winner_selected', { players: curIds.length, variant });
             audio.winner();
             vibrate([60, 30, 80, 30, 220]);
           }
