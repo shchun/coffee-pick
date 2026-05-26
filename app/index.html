@@ -7,27 +7,33 @@
 <meta name="theme-color" content="#ff5e87">
 <meta name="description" content="여러 명이 손가락을 올리면 한 명을 뽑아주는 술자리/모임용 결정 게임">
 
-<!-- Google Analytics (GA4) -->
+<!-- Google Tag Manager -->
 <script>
-  // ↓ 발급받은 GA4 측정 ID로 교체하세요 (G-XXXXXXXXXX). 그대로 두면 분석은 비활성화됩니다.
-  window.GA_MEASUREMENT_ID = 'G-RP2LP81QFF';
+  // GTM 컨테이너 ID. 태그/이벤트 매핑(GA4 등)은 GTM 콘솔에서 관리하므로,
+  // 추적을 바꿀 때 APK를 다시 배포할 필요가 없습니다.
+  window.GTM_CONTAINER_ID = 'GTM-T44LWB3H';
   window.dataLayer = window.dataLayer || [];
-  function gtag(){ dataLayer.push(arguments); }
   (function () {
-    var id = window.GA_MEASUREMENT_ID;
-    var configured = !!id && id.indexOf('G-') === 0 && id !== 'G-XXXXXXXXXX';
+    var id = window.GTM_CONTAINER_ID;
+    var configured = !!id && id.indexOf('GTM-') === 0 && id !== 'GTM-XXXXXXX';
     if (configured) {
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
-      document.head.appendChild(s);
-      gtag('js', new Date());
-      gtag('config', id);
+      // Standard GTM loader snippet.
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', id);
     }
-    // App calls window.track(name, params) for custom events; no-op until configured.
+    // App calls window.track(name, params) for custom events → pushed to dataLayer.
+    // GTM triggers (Custom Event = name) route these to GA4 etc. No-op until configured.
     window.track = function (name, params) {
       if (!configured) return;
-      try { gtag('event', name, params || {}); } catch (e) {}
+      try { window.dataLayer.push(Object.assign({ event: name }, params || {})); } catch (e) {}
     };
   })();
 </script>
@@ -75,6 +81,15 @@
     0%, 100% { opacity: 0.3; transform: translateY(0); }
     50% { opacity: 1; transform: translateY(-4px); }
   }
+  @keyframes ts-marker-in {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+    60% { opacity: 1; }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+  @keyframes ts-marker-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+  }
   @keyframes ts-hint-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   @keyframes ts-fade-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes ts-banner-in {
@@ -114,6 +129,9 @@
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) — harmless fallback; web views run JS so it's rarely used -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T44LWB3H"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="root"></div>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>

@@ -87,6 +87,7 @@ const TS_VARIANTS = {
 };
 
 const COUNTDOWN_MS = 2800;
+const RESET_GRACE_MS = 1500; // ignore taps right after the winner reveal (matches the reveal animation)
 
 // ─────────────────────────────────────────────────────────────
 // Audio + haptics
@@ -400,7 +401,7 @@ function WinnerBanner({ variant }) {
     <div style={{
       position: 'absolute', top: '12%', left: 0, right: 0,
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      pointerEvents: 'none', zIndex: 10,
+      pointerEvents: 'none', zIndex: 10, padding: '0 16px',
       animation: 'ts-banner-in .6s cubic-bezier(.2,.8,.3,1.2) .9s both',
     }}>
       <div style={{
@@ -408,7 +409,10 @@ function WinnerBanner({ variant }) {
         color: variant.fg, opacity: 0.8, marginBottom: 8,
       }}>★ ★ ★</div>
       <div style={{
-        fontFamily: variant.titleFont, fontSize: 64, fontWeight: 800,
+        fontFamily: variant.titleFont,
+        // Responsive so wide labels (e.g. NEON's "WINNER" in Audiowide) don't overflow narrow screens.
+        fontSize: 'clamp(36px, 13vw, 64px)', fontWeight: 800,
+        maxWidth: '100%', whiteSpace: 'nowrap',
         color: variant.fg, lineHeight: 0.95, letterSpacing: -1,
         textShadow: variant.ring === 'neon'
           ? `0 0 20px ${variant.accent}, 0 0 40px ${variant.accent}, 0 4px 0 #000`
@@ -416,6 +420,43 @@ function WinnerBanner({ variant }) {
           : variant.ring === 'pop' ? '0 6px 0 rgba(0,0,0,.15)'
           : '0 4px 20px rgba(0,0,0,.3)',
       }}>{variant.winnerLabel}</div>
+    </div>
+  );
+}
+
+// Fixed-size ring pinned to the winner's original finger spot, so it stays
+// readable even as the winner pointer zooms to fill the screen.
+function WinnerMarker({ variant, center }) {
+  if (!center) return null;
+  // Themed accent for the dashed ring on top — but it rides on a high-contrast
+  // dark+white base so the marker reads on any background behind it.
+  const accent = variant.ring === 'kawaii' ? '#2a0a2a'
+    : variant.ring === 'pop' ? '#fff'
+    : variant.accent;
+  return (
+    <div style={{
+      position: 'absolute', left: center.x, top: center.y,
+      width: 132, height: 132, transform: 'translate(-50%, -50%)',
+      pointerEvents: 'none', zIndex: 9,
+      animation: 'ts-marker-in .5s cubic-bezier(.2,.8,.3,1.2) 1s both',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '50%',
+        animation: 'ts-marker-pulse 1.4s ease-in-out 1.5s infinite',
+      }}>
+        <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', overflow: 'visible',
+          filter: 'drop-shadow(0 1px 3px rgba(0,0,0,.5))' }}>
+          {/* Two-color dashed ring: white + dark dashes interlock so one of them
+              always contrasts, whatever the background behind the marker is. */}
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#fff" strokeWidth="5"
+            strokeDasharray="8 8" />
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#1a1a1a" strokeWidth="5"
+            strokeDasharray="8 8" strokeDashoffset="8" />
+          {/* center dot — white halo + themed core */}
+          <circle cx="50" cy="50" r="6" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
+          <circle cx="50" cy="50" r="3" fill={accent} />
+        </svg>
+      </div>
     </div>
   );
 }
@@ -542,6 +583,7 @@ function TouchSelector({ variant = 'neon' }) {
   const colorIdxRef = useRef(0);
   const pointersRef = useRef({});
   const ignoreRef = useRef(false); // ignore new pointers after winner picked
+  const winnerAtRef = useRef(0);   // timestamp of winner reveal (for reset grace period)
 
   useEffect(() => { pointersRef.current = pointers; }, [pointers]);
 
@@ -562,7 +604,11 @@ function TouchSelector({ variant = 'neon' }) {
 
   const onPointerDown = (e) => {
     e.preventDefault();
-    if (phase === 'winner') { reset(); return; }
+    if (phase === 'winner') {
+      // Ignore accidental taps during the reveal; only reset once it settles.
+      if (performance.now() - winnerAtRef.current >= RESET_GRACE_MS) reset();
+      return;
+    }
     if (ignoreRef.current) return;
     try { e.target.setPointerCapture(e.pointerId); } catch {}
     const { x, y } = getXY(e);
@@ -619,6 +665,7 @@ function TouchSelector({ variant = 'neon' }) {
           if (curIds.length >= 2) {
             const w = curIds[Math.floor(Math.random() * curIds.length)];
             ignoreRef.current = true;
+            winnerAtRef.current = performance.now();
             setWinnerId(Number(w));
             setPhase('winner');
             if (window.track) window.track('winner_selected', { players: curIds.length, variant });
@@ -709,6 +756,7 @@ function TouchSelector({ variant = 'neon' }) {
       ))}
 
       {phase === 'winner' && <Confetti variant={v} center={pointers[winnerId]} />}
+      {phase === 'winner' && <WinnerMarker variant={v} center={pointers[winnerId]} />}
       {phase === 'winner' && <WinnerBanner variant={v} />}
       {phase === 'winner' && <ResetHint variant={v} />}
 

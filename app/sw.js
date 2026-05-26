@@ -1,7 +1,7 @@
 // sw.js — basic offline cache for 커피한잔 고?
 // Cache-first for our own assets, network-first for everything else.
 
-const CACHE = 'coffee-pick-v2';
+const CACHE = 'coffee-pick-v6';
 const ASSETS = [
   './',
   './index.html',
